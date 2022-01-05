@@ -260,6 +260,7 @@ impl pallet_balances::Config for Runtime {
 parameter_types! {
 	pub const TransactionByteFee: Balance = 1;
 	pub OperationalFeeMultiplier: u8 = 5;
+	pub const DepositBase: u32 = 1_000;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -284,6 +285,9 @@ impl pallet_template::Config for Runtime {
 impl pallet_kitties::Config for Runtime {
 	type Event = Event;
 	type Randomness = RandomnessCollectiveFlip;
+	type KittyIndex = Index;
+	type Currency = Balances;
+	type KittyDepositBase = DepositBase;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
