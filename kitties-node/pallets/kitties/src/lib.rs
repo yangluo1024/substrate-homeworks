@@ -84,12 +84,12 @@ pub mod pallet {
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        #[pallet::weight(0)]
+        #[pallet::weight(1_000)]
         pub fn create(origin: OriginFor<T>) -> DispatchResult {
             let who = ensure_signed(origin)?;
 
             // Generate kitty id and dna, checking the id is valid.
-            let kitty_id = Self::gen_id();
+            let kitty_id = Self::get_id();
             ensure!(kitty_id != T::KittyIndex::max_value(), Error::<T>::KittiesCountOverflow);
             let dna = Self::random_value(&who);
 
@@ -107,7 +107,7 @@ pub mod pallet {
             Ok(())
         }
 
-        #[pallet::weight(0)]
+        #[pallet::weight(1_000)]
         pub fn transfer(
             origin: OriginFor<T>, 
             new_owner: T::AccountId, 
@@ -126,7 +126,7 @@ pub mod pallet {
             Ok(())
         }
 
-        #[pallet::weight(0)]
+        #[pallet::weight(1_000)]
         pub fn breed(
             origin: OriginFor<T>,
             kitty_id1: T::KittyIndex,
@@ -140,7 +140,7 @@ pub mod pallet {
             let kitty2 = Self::kitties(kitty_id2).ok_or(Error::<T>::InvalidKittyIndex)?;
 
             // Generate kitty id and dna, checking the id is valid.
-            let kitty_id = Self::gen_id();
+            let kitty_id = Self::get_id();
             ensure!(kitty_id != T::KittyIndex::max_value(), Error::<T>::KittiesCountOverflow);
             let dna = Self::breed_dna(&who, &kitty1, &kitty2);
 
@@ -154,7 +154,7 @@ pub mod pallet {
             Ok(())
         }
 
-        #[pallet::weight(0)]
+        #[pallet::weight(1_000)]
         pub fn sell_kitty(
             origin: OriginFor<T>,
             kitty_id: T::KittyIndex,
@@ -173,14 +173,14 @@ pub mod pallet {
             Ok(())
         }
 
-        #[pallet::weight(0)]
+        #[pallet::weight(1_000)]
         pub fn buy_kitty(origin: OriginFor<T>, kitty_id: T::KittyIndex) -> DispatchResult {
             let who = ensure_signed(origin)?;
 
             // Ensure the kitty is exist and its owner is not the buyer.
             ensure!(Kitties::<T>::contains_key(kitty_id), Error::<T>::InvalidKittyIndex);
             let from = Owner::<T>::get(kitty_id).unwrap();
-            ensure!(who.clone() != from, Error::<T>::NotKittyOwner);
+            ensure!(who.clone() != from, Error::<T>::BuyFromSelf);
 
             // Get the price, and do the reserve and unreserve things.
             let price = Self::price(kitty_id).ok_or(Error::<T>::KittyNotForSale)?;
@@ -205,7 +205,7 @@ pub mod pallet {
     }
 
     impl<T: Config> Pallet<T> {
-        fn random_value(sender: &T::AccountId) -> [u8; 16] {
+        pub fn random_value(sender: &T::AccountId) -> [u8; 16] {
             let payload = (
                 T::Randomness::random_seed(),
                 &sender,
@@ -214,14 +214,14 @@ pub mod pallet {
             payload.using_encoded(blake2_128)
         }
 
-        fn gen_id() -> T::KittyIndex {
+        pub fn get_id() -> T::KittyIndex {
             match Self::kitties_count() {
                 Some(id) => id,
-                None => 1u32.into(),
+                None => 0u32.into(),
             }
         }
 
-        fn breed_dna(who: &T::AccountId, kitty1: &Kitty, kitty2: &Kitty) -> [u8; 16] {
+        pub fn breed_dna(who: &T::AccountId, kitty1: &Kitty, kitty2: &Kitty) -> [u8; 16] {
             let dna1 = kitty1.0;
             let dna2 = kitty2.0;
             let mut mix_dna = Self::random_value(&who);
