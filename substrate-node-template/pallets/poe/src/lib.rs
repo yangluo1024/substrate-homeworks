@@ -20,7 +20,7 @@ pub mod pallet {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The limit of the proof's length
-		#[pallet::constant]
+		// #[pallet::constant]
 		type LengthLimit: Get<u32>;
 	}
 

@@ -13,6 +13,7 @@ pub mod pallet {
         dispatch::{fmt::Debug, DispatchResult},
         pallet_prelude::*,
         traits::{Randomness, ReservableCurrency, Currency, ExistenceRequirement},
+        transactional,
     };    
     use frame_system::pallet_prelude::*;
     use codec::{Encode, Decode};
@@ -173,6 +174,7 @@ pub mod pallet {
             Ok(())
         }
 
+        #[transactional]
         #[pallet::weight(1_000)]
         pub fn buy_kitty(origin: OriginFor<T>, kitty_id: T::KittyIndex) -> DispatchResult {
             let who = ensure_signed(origin)?;
